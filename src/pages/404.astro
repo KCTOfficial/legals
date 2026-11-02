@@ -1,0 +1,12 @@
+---
+import Shell from '../layouts/Shell.astro';
+import { withBase } from '../lib/legal';
+---
+
+<Shell title="Page not found" description="The page you are looking for does not exist.">
+  <section class="page-intro">
+    <p class="eyebrow">404</p>
+    <h1>Page not found</h1>
+    <p class="lead">This document may have moved. Pick an app from the menu, or go back to the <a href={withBase('/')}>home page</a>.</p>
+  </section>
+</Shell>

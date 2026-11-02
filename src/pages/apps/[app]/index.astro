@@ -1,0 +1,51 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Shell from '../../../layouts/Shell.astro';
+import AppIcon from '../../../components/AppIcon.astro';
+import { formatDate, getApps, withBase, type LegalApp } from '../../../lib/legal';
+
+export const getStaticPaths = (async () => {
+  const apps = await getApps();
+  return apps.map((app) => ({ params: { app: app.slug }, props: { app } }));
+}) satisfies GetStaticPaths;
+
+const { app } = Astro.props as { app: LegalApp };
+---
+
+<Shell
+  title={`${app.name} legal documents`}
+  description={`Privacy policy, terms, and other legal documents for ${app.name}.`}
+  currentApp={app.slug}
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a href={withBase('/')}>Home</a></li>
+      <li><span aria-current="page">{app.name}</span></li>
+    </ol>
+  </nav>
+
+  <header class="app-header">
+    <AppIcon app={app} size={72} />
+    <div>
+      <h1>{app.name}</h1>
+      {app.description && <p class="lead">{app.description}</p>}
+    </div>
+  </header>
+
+  <h2 class="list-heading">Documents</h2>
+  <ul class="doc-list">
+    {
+      app.docs.map((doc) => (
+        <li>
+          <a href={doc.href}>
+            <span class="doc-list-title">{doc.title}</span>
+            {doc.effective && <span class="doc-list-meta">Effective {formatDate(doc.effective)}</span>}
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Shell>

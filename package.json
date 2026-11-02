@@ -1,0 +1,27 @@
+{
+  "name": "legals",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landing page for KCT legal documents; content is read from the main branch",
+  "type": "module",
+  "scripts": {
+    "sync-content": "node scripts/sync-content.mjs",
+    "dev": "npm run sync-content && astro dev",
+    "build": "npm run sync-content && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KCTOfficial/legals.git"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.6",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "astro": "^7.4.4",
+    "satteri": "0.10.5"
+  }
+}

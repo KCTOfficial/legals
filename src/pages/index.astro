@@ -1,0 +1,90 @@
+---
+import Shell from '../layouts/Shell.astro';
+import AppIcon from '../components/AppIcon.astro';
+import { getApps, withBase } from '../lib/legal';
+import { CONTACT_EMAIL, ORG_NAME } from '../lib/site';
+
+const apps = await getApps();
+const docCount = apps.reduce((sum, app) => sum + app.docs.length, 0);
+---
+
+<Shell description={`Privacy policies, terms, and other legal documents for apps published by ${ORG_NAME}.`}>
+  <section class="hero">
+    <img class="hero-logo" src={withBase('/kct-logo.png')} width="56" height="56" alt="KCT logo" />
+    <p class="hero-eyebrow">{ORG_NAME}</p>
+    <h1>Legal Center</h1>
+    <p class="hero-lead">
+      Privacy policies, terms, and other legal documents for every app published by {ORG_NAME} (KCT), in one place.
+    </p>
+    <ul class="hero-stats">
+      <li><strong>{apps.length}</strong> {apps.length === 1 ? 'app' : 'apps'}</li>
+      <li><strong>{docCount}</strong> {docCount === 1 ? 'document' : 'documents'}</li>
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="apps-heading">
+    <div class="section-head">
+      <h2 id="apps-heading">Apps</h2>
+      <p>Choose an app to read its documents.</p>
+    </div>
+    <ul class="app-grid">
+      {
+        apps.map((app) => (
+          <li class="app-card">
+            <a class="app-card-head" href={app.href}>
+              <AppIcon app={app} size={52} />
+              <span class="app-card-text">
+                <span class="app-card-name">{app.name}</span>
+                {app.description && <span class="app-card-desc">{app.description}</span>}
+              </span>
+            </a>
+            <ul class="app-card-docs">
+              {app.docs.map((doc) => (
+                <li>
+                  <a href={doc.href}>{doc.title}</a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="about-heading">
+    <div class="section-head">
+      <h2 id="about-heading">What you'll find here</h2>
+    </div>
+    <ul class="features">
+      <li>
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.2 7 9.5 4.1-1.3 7-5.2 7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Privacy policies</h3>
+        <p>How each app collects, uses, stores, and protects information, and how you can control it.</p>
+      </li>
+      <li>
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Terms &amp; conditions</h3>
+        <p>The rules and responsibilities that apply when you download and use each app.</p>
+      </li>
+      <li>
+        <span class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Stable public links</h3>
+        <p>Every document has a permanent public URL that can be used in app store listings such as Google Play.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section callout" aria-labelledby="contact-heading">
+    <div>
+      <h2 id="contact-heading">Questions or requests?</h2>
+      <p>For questions about these documents, or to exercise your privacy rights, contact us by email.</p>
+    </div>
+    <a class="button" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+  </section>
+</Shell>

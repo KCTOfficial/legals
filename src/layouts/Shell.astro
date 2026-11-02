@@ -1,0 +1,96 @@
+---
+import '@fontsource-variable/plus-jakarta-sans';
+import '../styles/global.css';
+import Sidebar from '../components/Sidebar.astro';
+import { getApps, withBase } from '../lib/legal';
+import { CONTACT_EMAIL, ORG_NAME, SITE_NAME } from '../lib/site';
+
+interface Props {
+  /** Omit on the home page to use the site name alone. */
+  title?: string;
+  description: string;
+  currentApp?: string;
+  currentDoc?: string;
+}
+
+const { title, description, currentApp, currentDoc } = Astro.props;
+const apps = await getApps();
+const pageTitle = title ? `${title} · ${SITE_NAME}` : SITE_NAME;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <link rel="icon" type="image/png" href={withBase('/kct-logo.png')} />
+    <link rel="apple-touch-icon" href={withBase('/kct-logo.png')} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar">
+      <a class="brand" href={withBase('/')}>
+        <img class="brand-mark" src={withBase('/kct-logo.png')} width="32" height="32" alt="" />
+        <span class="brand-text">KCT <span>Legal</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-controls="sidebar" aria-expanded="false" data-nav-toggle>
+        <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+          <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"></path>
+        </svg>
+        <span class="visually-hidden">Menu</span>
+      </button>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand brand--sidebar" href={withBase('/')}>
+          <img class="brand-mark" src={withBase('/kct-logo.png')} width="36" height="36" alt="" />
+          <span class="brand-text">KCT <span>Legal</span></span>
+        </a>
+        <Sidebar apps={apps} currentApp={currentApp} currentDoc={currentDoc} />
+        <p class="sidebar-foot">
+          Questions? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
+      </aside>
+      <div class="scrim" data-nav-scrim hidden></div>
+
+      <main id="main" class="main" tabindex="-1">
+        <slot />
+        <footer class="site-footer">
+          © {new Date().getFullYear()} {ORG_NAME}. All rights reserved.
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+      const scrim = document.querySelector<HTMLElement>('[data-nav-scrim]');
+      const setOpen = (open: boolean) => {
+        document.body.classList.toggle('nav-open', open);
+        toggle?.setAttribute('aria-expanded', String(open));
+        if (scrim) scrim.hidden = !open;
+      };
+      toggle?.addEventListener('click', () => setOpen(!document.body.classList.contains('nav-open')));
+      scrim?.addEventListener('click', () => setOpen(false));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && document.body.classList.contains('nav-open')) {
+          setOpen(false);
+          toggle?.focus();
+        }
+      });
+      matchMedia('(min-width: 960px)').addEventListener('change', (event) => event.matches && setOpen(false));
+    </script>
+  </body>
+</html>

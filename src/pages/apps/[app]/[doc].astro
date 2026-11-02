@@ -1,0 +1,93 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import Shell from '../../../layouts/Shell.astro';
+import AppIcon from '../../../components/AppIcon.astro';
+import { formatDate, getApps, withBase, type LegalApp, type LegalDoc } from '../../../lib/legal';
+import { ORG_NAME } from '../../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const apps = await getApps();
+  return apps.flatMap((app) =>
+    app.docs.map((doc) => ({ params: { app: app.slug, doc: doc.slug }, props: { app, doc } })),
+  );
+}) satisfies GetStaticPaths;
+
+const { app, doc } = Astro.props as { app: LegalApp; doc: LegalDoc };
+const { Content, headings } = await render(doc.entry);
+const sections = headings.filter((heading) => heading.depth === 2);
+---
+
+<Shell
+  title={`${doc.title} – ${app.name}`}
+  description={doc.description ?? `${doc.title} for the ${app.name} app by ${ORG_NAME}.`}
+  currentApp={app.slug}
+  currentDoc={doc.slug}
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a href={withBase('/')}>Home</a></li>
+      <li><a href={app.href}>{app.name}</a></li>
+      <li><span aria-current="page">{doc.title}</span></li>
+    </ol>
+  </nav>
+
+  <div class="doc-layout">
+    <div class="doc-paper">
+      <div class="doc-bar">
+        <div class="doc-eyebrow">
+          <AppIcon app={app} size={22} />
+          <span class="doc-eyebrow-app">{app.name}</span>
+          {
+            doc.effective && (
+              <span class="doc-eyebrow-date">
+                Effective <time datetime={doc.effective.toISOString().slice(0, 10)}>{formatDate(doc.effective)}</time>
+              </span>
+            )
+          }
+        </div>
+        <button class="copy-link" type="button" data-copy-link>
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+            <path d="M8.5 11.5a3.2 3.2 0 0 0 4.5 0l2.5-2.5a3.2 3.2 0 0 0-4.5-4.5l-.8.8M11.5 8.5a3.2 3.2 0 0 0-4.5 0L4.5 11a3.2 3.2 0 0 0 4.5 4.5l.8-.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          <span data-copy-label>Copy link</span>
+        </button>
+      </div>
+
+      <article class="prose">
+        <Content />
+      </article>
+    </div>
+
+    {
+      sections.length > 2 && (
+        <nav class="toc" aria-label="On this page">
+          <p class="toc-title">On this page</p>
+          <ul>
+            {sections.map((heading) => (
+              <li>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+  </div>
+</Shell>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy-link]')) {
+    const label = button.querySelector('[data-copy-label]');
+    button.addEventListener('click', async () => {
+      const url = location.href.split('#')[0];
+      try {
+        await navigator.clipboard.writeText(url);
+        if (label) label.textContent = 'Link copied';
+      } catch {
+        if (label) label.textContent = 'Copy failed';
+      }
+      setTimeout(() => label && (label.textContent = 'Copy link'), 2000);
+    });
+  }
+</script>

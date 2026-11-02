@@ -1,0 +1,53 @@
+---
+import AppIcon from './AppIcon.astro';
+import { withBase, type LegalApp } from '../lib/legal';
+
+interface Props {
+  apps: LegalApp[];
+  currentApp?: string;
+  currentDoc?: string;
+}
+
+const { apps, currentApp, currentDoc } = Astro.props;
+const isHome = !currentApp;
+---
+
+<nav class="sidebar-nav" aria-label="Legal documents">
+  <a class="nav-home" href={withBase('/')} aria-current={isHome ? 'page' : undefined}>
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+      <path d="M3 9.5 10 3.5l7 6V17a1 1 0 0 1-1 1h-4v-5H8v5H4a1 1 0 0 1-1-1z" fill="currentColor"></path>
+    </svg>
+    Home
+  </a>
+
+  <p class="nav-label" id="nav-apps-label">Apps</p>
+  <ul class="tree" aria-labelledby="nav-apps-label">
+    {
+      apps.map((app) => (
+        <li>
+          <details open={isHome || app.slug === currentApp}>
+            <summary>
+              <AppIcon app={app} size={22} />
+              <span class="tree-name">{app.name}</span>
+              <svg class="tree-chevron" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </summary>
+            <ul class="tree-docs">
+              {app.docs.map((doc) => (
+                <li>
+                  <a
+                    href={doc.href}
+                    aria-current={app.slug === currentApp && doc.slug === currentDoc ? 'page' : undefined}
+                  >
+                    {doc.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

@@ -1,0 +1,21 @@
+# The site is built and deployed by `deploy-site.yml` on the main branch. When the site code on
+# this branch changes, dispatch that workflow so the change goes live. (Workflow runs started with
+# GITHUB_TOKEN via workflow_dispatch are allowed to trigger other workflows.)
+name: Trigger site deploy
+
+on:
+  push:
+    branches: [docs]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run deploy-site.yml on main
+        run: gh workflow run deploy-site.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
