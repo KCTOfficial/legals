@@ -1,0 +1,62 @@
+# Builds the legal site (code on the `docs` branch, documents on `main`) and deploys it to GitHub Pages.
+# Runs on every push to main, and is dispatched by the `docs` branch whenever the site code changes.
+# It lives on main so deployments always come from the default branch (allowed by the
+# github-pages environment without extra configuration).
+name: Deploy legal site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site code (docs branch)
+        uses: actions/checkout@v5
+        with:
+          ref: docs
+          # Full fetch so the documents commit on main is available to sync-content.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # The main commit that triggered this run (push or dispatch on main).
+          CONTENT_REF: ${{ github.sha }}
+          SITE: ${{ steps.pages.outputs.origin }}
+          BASE: ${{ steps.pages.outputs.base_path }}
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
