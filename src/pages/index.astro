@@ -1,6 +1,5 @@
 ---
 import Shell from '../layouts/Shell.astro';
-import AppIcon from '../components/AppIcon.astro';
 import { getApps, withBase } from '../lib/legal';
 import { CONTACT_EMAIL, ORG_NAME } from '../lib/site';
 
@@ -19,35 +18,6 @@ const docCount = apps.reduce((sum, app) => sum + app.docs.length, 0);
     <ul class="hero-stats">
       <li><strong>{apps.length}</strong> {apps.length === 1 ? 'app' : 'apps'}</li>
       <li><strong>{docCount}</strong> {docCount === 1 ? 'document' : 'documents'}</li>
-    </ul>
-  </section>
-
-  <section class="section" aria-labelledby="apps-heading">
-    <div class="section-head">
-      <h2 id="apps-heading">Apps</h2>
-      <p>Choose an app to read its documents.</p>
-    </div>
-    <ul class="app-grid">
-      {
-        apps.map((app) => (
-          <li class="app-card">
-            <a class="app-card-head" href={app.href}>
-              <AppIcon app={app} size={52} />
-              <span class="app-card-text">
-                <span class="app-card-name">{app.name}</span>
-                {app.description && <span class="app-card-desc">{app.description}</span>}
-              </span>
-            </a>
-            <ul class="app-card-docs">
-              {app.docs.map((doc) => (
-                <li>
-                  <a href={doc.href}>{doc.title}</a>
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))
-      }
     </ul>
   </section>
 
