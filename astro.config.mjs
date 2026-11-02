@@ -10,6 +10,8 @@ export default defineConfig({
   base: process.env.BASE || '/',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  // Fetch pages on hover/focus/touch so navigation feels instant on slow connections.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   markdown: {
     processor: satteri({ mdastPlugins: [boldParagraphHeadings] }),
   },

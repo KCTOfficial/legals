@@ -9,11 +9,13 @@ interface Props {
   /** Omit on the home page to use the site name alone. */
   title?: string;
   description: string;
+  /** Top-level sidebar entry to mark as current. */
+  section?: 'home' | 'apps';
   currentApp?: string;
   currentDoc?: string;
 }
 
-const { title, description, currentApp, currentDoc } = Astro.props;
+const { title, description, section, currentApp, currentDoc } = Astro.props;
 const apps = await getApps();
 const pageTitle = title ? `${title} · ${SITE_NAME}` : SITE_NAME;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
@@ -59,7 +61,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
           <img class="brand-mark" src={withBase('/kct-logo.png')} width="36" height="36" alt="" />
           <span class="brand-text">KCT <span>Legal</span></span>
         </a>
-        <Sidebar apps={apps} currentApp={currentApp} currentDoc={currentDoc} />
+        <Sidebar apps={apps} section={section} currentApp={currentApp} currentDoc={currentDoc} />
         <p class="sidebar-foot">
           Questions? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>

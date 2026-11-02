@@ -20,6 +20,7 @@ const { app } = Astro.props as { app: LegalApp };
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
       <li><a href={withBase('/')}>Home</a></li>
+      <li><a href={withBase('/apps/')}>All apps</a></li>
       <li><span aria-current="page">{app.name}</span></li>
     </ol>
   </nav>
@@ -29,6 +30,15 @@ const { app } = Astro.props as { app: LegalApp };
     <div>
       <h1>{app.name}</h1>
       {app.description && <p class="lead">{app.description}</p>}
+      {
+        app.tags.length > 0 && (
+          <ul class="tags" aria-label="Tags">
+            {app.tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )
+      }
     </div>
   </header>
 

@@ -4,50 +4,80 @@ import { withBase, type LegalApp } from '../lib/legal';
 
 interface Props {
   apps: LegalApp[];
+  section?: 'home' | 'apps';
   currentApp?: string;
   currentDoc?: string;
 }
 
-const { apps, currentApp, currentDoc } = Astro.props;
-const isHome = !currentApp;
+/** With few apps every branch starts open; beyond that only the current app's branch does. */
+const EXPAND_ALL_MAX = 5;
+
+const { apps, section, currentApp, currentDoc } = Astro.props;
+const expandAll = !currentApp && apps.length <= EXPAND_ALL_MAX;
 ---
 
 <nav class="sidebar-nav" aria-label="Legal documents">
-  <a class="nav-home" href={withBase('/')} aria-current={isHome ? 'page' : undefined}>
+  <a class="nav-home" href={withBase('/')} aria-current={section === 'home' ? 'page' : undefined}>
     <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
       <path d="M3 9.5 10 3.5l7 6V17a1 1 0 0 1-1 1h-4v-5H8v5H4a1 1 0 0 1-1-1z" fill="currentColor"></path>
     </svg>
     Home
   </a>
+  <a class="nav-home" href={withBase('/apps/')} aria-current={section === 'apps' ? 'page' : undefined}>
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+      <rect x="3" y="3" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+      <rect x="11" y="3" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+      <rect x="3" y="11" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+      <rect x="11" y="11" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+    </svg>
+    All apps
+  </a>
 
   <p class="nav-label" id="nav-apps-label">Apps</p>
-  <ul class="tree" aria-labelledby="nav-apps-label">
-    {
-      apps.map((app) => (
-        <li>
-          <details open={isHome || app.slug === currentApp}>
-            <summary>
-              <AppIcon app={app} size={22} />
-              <span class="tree-name">{app.name}</span>
-              <svg class="tree-chevron" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </summary>
-            <ul class="tree-docs">
-              {app.docs.map((doc) => (
-                <li>
-                  <a
-                    href={doc.href}
-                    aria-current={app.slug === currentApp && doc.slug === currentDoc ? 'page' : undefined}
-                  >
-                    {doc.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </details>
-        </li>
-      ))
-    }
-  </ul>
+  <!-- Only the app tree scrolls; the links above and the contact box below stay in place. -->
+  <div class="tree-scroll" data-tree-scroll>
+    <ul class="tree" aria-labelledby="nav-apps-label">
+      {
+        apps.map((app) => (
+          <li>
+            <details open={expandAll || app.slug === currentApp}>
+              <summary data-current={app.slug === currentApp ? '' : undefined}>
+                <AppIcon app={app} size={22} />
+                <span class="tree-name">{app.name}</span>
+                <svg class="tree-chevron" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                  <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </summary>
+              <ul class="tree-docs">
+                {app.docs.map((doc) => (
+                  <li>
+                    <a
+                      href={doc.href}
+                      aria-current={app.slug === currentApp && doc.slug === currentDoc ? 'page' : undefined}
+                    >
+                      {doc.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
 </nav>
+
+<script>
+  // In a long app list, bring the current document (or app) into view inside the sidebar
+  // without scrolling the page itself.
+  const scroller = document.querySelector<HTMLElement>('[data-tree-scroll]');
+  const current =
+    scroller?.querySelector<HTMLElement>('[aria-current="page"]') ?? scroller?.querySelector<HTMLElement>('[data-current]');
+  if (scroller && current) {
+    const offset = current.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    if (offset < 0 || offset > scroller.clientHeight - current.offsetHeight) {
+      scroller.scrollTop += offset - scroller.clientHeight / 3;
+    }
+  }
+</script>

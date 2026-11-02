@@ -15,7 +15,7 @@ const docs = defineCollection({
   }),
 });
 
-/** Optional `<app>/app.json` with the display name and a short description. */
+/** Optional `<app>/app.json` with the display name, a short description, and up to 5 tags. */
 const apps = defineCollection({
   loader: glob({
     pattern: '*/app.json',
@@ -25,6 +25,7 @@ const apps = defineCollection({
   schema: z.object({
     name: z.string(),
     description: z.string().optional(),
+    tags: z.array(z.string().trim().min(1).max(24)).max(5, 'app.json allows at most 5 tags').default([]),
   }),
 });
 

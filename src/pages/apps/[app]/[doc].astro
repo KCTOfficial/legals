@@ -27,6 +27,7 @@ const sections = headings.filter((heading) => heading.depth === 2);
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
       <li><a href={withBase('/')}>Home</a></li>
+      <li><a href={withBase('/apps/')}>All apps</a></li>
       <li><a href={app.href}>{app.name}</a></li>
       <li><span aria-current="page">{doc.title}</span></li>
     </ol>
@@ -89,5 +90,37 @@ const sections = headings.filter((heading) => heading.depth === 2);
       }
       setTimeout(() => label && (label.textContent = 'Copy link'), 2000);
     });
+  }
+
+  // Scroll-spy: mark the "On this page" link of the section being read.
+  const ACTIVE_OFFSET = 120;
+  const tocEntries = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')]
+    .map((link) => ({ link, target: document.getElementById(decodeURIComponent(link.hash.slice(1))) }))
+    .filter((entry): entry is { link: HTMLAnchorElement; target: HTMLElement } => entry.target !== null);
+
+  if (tocEntries.length > 0) {
+    let scheduled = false;
+    const update = () => {
+      scheduled = false;
+      const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+      let active = -1;
+      tocEntries.forEach(({ target }, index) => {
+        if (target.getBoundingClientRect().top <= ACTIVE_OFFSET) active = index;
+      });
+      if (atBottom) active = tocEntries.length - 1;
+      tocEntries.forEach(({ link }, index) => {
+        if (index === active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    const schedule = () => {
+      if (!scheduled) {
+        scheduled = true;
+        requestAnimationFrame(update);
+      }
+    };
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    update();
   }
 </script>

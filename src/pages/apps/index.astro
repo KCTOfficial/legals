@@ -1,60 +1,323 @@
 ---
-import Shell from '../layouts/Shell.astro';
-import { getApps, withBase } from '../lib/legal';
-import { CONTACT_EMAIL, ORG_NAME } from '../lib/site';
+import Shell from '../../layouts/Shell.astro';
+import AppIcon from '../../components/AppIcon.astro';
+import { getApps, tagKey, withBase } from '../../lib/legal';
+import { ORG_NAME } from '../../lib/site';
+
+/** Documents listed per card before "+N more", and apps revealed per "Show more" step. */
+const VISIBLE_DOCS = 3;
+const PAGE_SIZE = 24;
+const SKELETON_CARDS = 6;
 
 const apps = await getApps();
-const docCount = apps.reduce((sum, app) => sum + app.docs.length, 0);
+
+// App tags are already deduplicated and share one canonical label per tag (see getApps).
+const tagCounts = new Map<string, { label: string; count: number }>();
+for (const tag of apps.flatMap((app) => app.tags)) {
+  const key = tagKey(tag);
+  tagCounts.set(key, { label: tag, count: (tagCounts.get(key)?.count ?? 0) + 1 });
+}
+const tags = [...tagCounts]
+  .map(([key, { label, count }]) => ({ key, label, count }))
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+const searchText = (app: (typeof apps)[number]) =>
+  [app.name, app.description ?? '', ...app.tags, ...app.docs.map((doc) => doc.title)].join(' ');
 ---
 
-<Shell description={`Privacy policies, terms, and other legal documents for apps published by ${ORG_NAME}.`}>
-  <section class="hero">
-    <img class="hero-logo" src={withBase('/kct-logo.png')} width="56" height="56" alt="KCT logo" />
-    <p class="hero-eyebrow">{ORG_NAME}</p>
-    <h1>Legal Center</h1>
-    <p class="hero-lead">
-      Privacy policies, terms, and other legal documents for every app published by {ORG_NAME} (KCT), in one place.
+<Shell
+  title="All apps"
+  description={`Search and browse the legal documents of every app published by ${ORG_NAME}.`}
+  section="apps"
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a href={withBase('/')}>Home</a></li>
+      <li><span aria-current="page">All apps</span></li>
+    </ol>
+  </nav>
+
+  <section class="directory" aria-labelledby="apps-heading" data-directory>
+    <header class="page-intro">
+      <h1 id="apps-heading">All apps</h1>
+      <p class="lead">Find an app to read its privacy policy, terms, and other legal documents.</p>
+    </header>
+
+    <div class="directory-toolbar">
+      <label class="search">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+          <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"></circle>
+          <path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+        <span class="visually-hidden">Search apps</span>
+        <input type="search" placeholder="Search apps or documents" autocomplete="off" spellcheck="false" data-search />
+      </label>
+    </div>
+
+    {
+      tags.length > 0 && (
+        <div class="tag-filter" role="group" aria-label="Filter apps by tag" data-tag-filter>
+          <div class="tag-chips" data-tag-chips>
+            <button type="button" class="chip" aria-pressed="true" data-tag="">
+              All <span class="chip-count">{apps.length}</span>
+            </button>
+            {tags.map((tag) => (
+              <button type="button" class="chip" aria-pressed="false" data-tag={tag.key}>
+                {tag.label} <span class="chip-count">{tag.count}</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" class="chip-toggle" aria-expanded="false" hidden data-tag-toggle>
+            More
+          </button>
+        </div>
+      )
+    }
+
+    <p class="result-count" aria-live="polite" data-result-count>
+      {apps.length} {apps.length === 1 ? 'app' : 'apps'}
     </p>
-    <ul class="hero-stats">
-      <li><strong>{apps.length}</strong> {apps.length === 1 ? 'app' : 'apps'}</li>
-      <li><strong>{docCount}</strong> {docCount === 1 ? 'document' : 'documents'}</li>
-    </ul>
-  </section>
+    <script is:inline>
+      // Runs before the list is painted: show the skeleton until the filter script has applied
+      // the URL filters and paging, so visitors on slow connections never see the list jump.
+      (function () {
+        var directory = document.currentScript.closest('[data-directory]');
+        var count = directory.querySelector('[data-result-count]');
+        var original = count.textContent;
+        directory.setAttribute('data-loading', '');
+        count.textContent = 'Loading apps…';
+        // Never leave visitors on the skeleton if the filter script fails to run.
+        setTimeout(function () {
+          if (!directory.hasAttribute('data-loading')) return;
+          directory.removeAttribute('data-loading');
+          count.textContent = original;
+        }, 5000);
+      })();
+    </script>
 
-  <section class="section" aria-labelledby="about-heading">
-    <div class="section-head">
-      <h2 id="about-heading">What you'll find here</h2>
-    </div>
-    <ul class="features">
-      <li>
-        <span class="feature-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.2 7 9.5 4.1-1.3 7-5.2 7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <h3>Privacy policies</h3>
-        <p>How each app collects, uses, stores, and protects information, and how you can control it.</p>
-      </li>
-      <li>
-        <span class="feature-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <h3>Terms &amp; conditions</h3>
-        <p>The rules and responsibilities that apply when you download and use each app.</p>
-      </li>
-      <li>
-        <span class="feature-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <h3>Stable public links</h3>
-        <p>Every document has a permanent public URL that can be used in app store listings such as Google Play.</p>
-      </li>
+    <ul class="app-grid directory-skeleton" aria-hidden="true">
+      {
+        Array.from({ length: Math.min(SKELETON_CARDS, Math.max(apps.length, 1)) }, () => (
+          <li class="skeleton-card">
+            <span class="skeleton skeleton-icon" />
+            <span class="skeleton-lines">
+              <span class="skeleton skeleton-line skeleton-line--title" />
+              <span class="skeleton skeleton-line" />
+              <span class="skeleton skeleton-line skeleton-line--short" />
+            </span>
+          </li>
+        ))
+      }
     </ul>
-  </section>
 
-  <section class="section callout" aria-labelledby="contact-heading">
-    <div>
-      <h2 id="contact-heading">Questions or requests?</h2>
-      <p>For questions about these documents, or to exercise your privacy rights, contact us by email.</p>
+    <ul class="app-grid" data-app-list data-page-size={PAGE_SIZE}>
+      {
+        apps.map((app) => (
+          <li class="app-card" data-tags={app.tags.map(tagKey).join('|')} data-search-text={searchText(app)}>
+            <a class="app-card-head" href={app.href}>
+              <AppIcon app={app} size={48} />
+              <span class="app-card-text">
+                <span class="app-card-name">{app.name}</span>
+                {app.description && <span class="app-card-desc">{app.description}</span>}
+              </span>
+            </a>
+            {app.tags.length > 0 && (
+              <ul class="app-card-tags" aria-label={`${app.name} tags`}>
+                {app.tags.map((tag) => (
+                  <li>
+                    <button type="button" data-filter-tag={tagKey(tag)} title={`Show apps tagged ${tag}`}>
+                      #{tag}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <ul class="app-card-docs" aria-label={`${app.name} documents`}>
+              {app.docs.slice(0, VISIBLE_DOCS).map((doc) => (
+                <li>
+                  <a href={doc.href}>{doc.title}</a>
+                </li>
+              ))}
+              {app.docs.length > VISIBLE_DOCS && (
+                <li>
+                  <a class="app-card-more" href={app.href}>
+                    +{app.docs.length - VISIBLE_DOCS} more
+                  </a>
+                </li>
+              )}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+
+    <button type="button" class="button button--secondary load-more" hidden data-load-more>Show more</button>
+
+    <div class="empty-state" hidden data-empty>
+      <p class="empty-state-title">No apps match your filters</p>
+      <p>Try a different search term or tag.</p>
+      <button type="button" class="button button--secondary" data-clear>Clear filters</button>
     </div>
-    <a class="button" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
   </section>
 </Shell>
+
+<script>
+  // Client-side search, single-tag filter, and "Show more" paging for the app directory.
+  // Filter state lives in the URL (?q=…&tag=…) so filtered views can be shared and survive reloads.
+  const directory = document.querySelector<HTMLElement>('[data-directory]');
+
+  if (directory) {
+    const normalize = (value: string) =>
+      value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+    const plural = (n: number) => `${n} ${n === 1 ? 'app' : 'apps'}`;
+
+    const search = directory.querySelector<HTMLInputElement>('[data-search]')!;
+    const filter = directory.querySelector<HTMLElement>('[data-tag-filter]');
+    const chipRow = directory.querySelector<HTMLElement>('[data-tag-chips]');
+    const chips = [...directory.querySelectorAll<HTMLButtonElement>('[data-tag]')];
+    const toggle = directory.querySelector<HTMLButtonElement>('[data-tag-toggle]');
+    const count = directory.querySelector<HTMLElement>('[data-result-count]')!;
+    const list = directory.querySelector<HTMLElement>('[data-app-list]')!;
+    const loadMore = directory.querySelector<HTMLButtonElement>('[data-load-more]')!;
+    const empty = directory.querySelector<HTMLElement>('[data-empty]')!;
+    const items = [...list.querySelectorAll<HTMLElement>(':scope > li')].map((element) => ({
+      element,
+      tags: (element.dataset.tags ?? '').split('|').filter(Boolean),
+      text: normalize(element.dataset.searchText ?? ''),
+    }));
+    const knownTags = new Set(chips.map((chip) => chip.dataset.tag ?? '').filter(Boolean));
+    const pageSize = Number(list.dataset.pageSize) || 24;
+
+    const params = new URLSearchParams(location.search);
+    // Keep anything typed before this script ran (slow connections) over the URL value.
+    let query = search.value || params.get('q') || '';
+    let tag = knownTags.has(params.get('tag') ?? '') ? params.get('tag')! : '';
+    let limit = pageSize;
+    let matches = items;
+    search.value = query;
+
+    /* ----- Tag row: show only the chips that fit on one line, the rest behind "+N more" ----- */
+
+    const isExpanded = () => filter?.hasAttribute('data-expanded') ?? false;
+
+    const fitTags = () => {
+      if (!chipRow || !toggle) return;
+      for (const chip of chips) chip.classList.remove('chip--overflow');
+      if (isExpanded()) {
+        toggle.hidden = false;
+        toggle.textContent = 'Show less';
+        return;
+      }
+      // Measure with the widest toggle label so the result still fits once the label shrinks.
+      toggle.hidden = false;
+      toggle.textContent = `+${chips.length} more`;
+      const right = chipRow.clientWidth - parseFloat(getComputedStyle(chipRow).paddingRight);
+      const overflow = chips.filter((chip) => chip.offsetLeft + chip.offsetWidth > right);
+      if (overflow.length === 0) {
+        toggle.hidden = true;
+        return;
+      }
+      for (const chip of overflow) chip.classList.add('chip--overflow');
+      // Safety net for rounding: keep hiding the last visible chip while the row still overflows.
+      const shown = chips.filter((chip) => !chip.classList.contains('chip--overflow'));
+      let hiddenCount = overflow.length;
+      while (shown.length > 1 && chipRow.scrollWidth > chipRow.clientWidth) {
+        shown.pop()!.classList.add('chip--overflow');
+        hiddenCount += 1;
+      }
+      toggle.textContent = `+${hiddenCount} more`;
+    };
+
+    const setExpanded = (expanded: boolean) => {
+      if (!filter || !toggle) return;
+      filter.toggleAttribute('data-expanded', expanded);
+      toggle.setAttribute('aria-expanded', String(expanded));
+      fitTags();
+    };
+
+    /* ----- Filtering and paging ----- */
+
+    const syncUrl = () => {
+      const next = new URLSearchParams(location.search);
+      query.trim() ? next.set('q', query.trim()) : next.delete('q');
+      tag ? next.set('tag', tag) : next.delete('tag');
+      const qs = next.toString();
+      history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`);
+    };
+
+    const render = () => {
+      const visible = new Set(matches.slice(0, limit));
+      for (const item of items) item.element.hidden = !visible.has(item);
+
+      const remaining = matches.length - visible.size;
+      loadMore.hidden = remaining <= 0;
+      loadMore.textContent = `Show ${Math.min(pageSize, remaining)} more`;
+
+      const filtered = Boolean(tag || query.trim());
+      const total = filtered ? `${plural(matches.length)} found` : plural(items.length);
+      count.textContent = remaining > 0 ? `${total} · showing ${visible.size}` : total;
+      empty.hidden = matches.length > 0;
+    };
+
+    const applyFilters = () => {
+      const terms = normalize(query).split(/\s+/).filter(Boolean);
+      matches = items.filter(
+        (item) => (!tag || item.tags.includes(tag)) && terms.every((term) => item.text.includes(term)),
+      );
+      limit = pageSize;
+      for (const chip of chips) chip.setAttribute('aria-pressed', String((chip.dataset.tag ?? '') === tag));
+      // Keep the selected tag visible even when it sits behind "+N more".
+      if (chips.find((chip) => chip.dataset.tag === tag)?.classList.contains('chip--overflow')) setExpanded(true);
+      render();
+      syncUrl();
+    };
+
+    search.addEventListener('input', () => {
+      query = search.value;
+      applyFilters();
+    });
+    search.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && search.value) {
+        search.value = query = '';
+        applyFilters();
+      }
+    });
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        tag = chip.dataset.tag ?? '';
+        applyFilters();
+      });
+    }
+    toggle?.addEventListener('click', () => setExpanded(!isExpanded()));
+    list.addEventListener('click', (event) => {
+      const button = (event.target as Element).closest<HTMLButtonElement>('[data-filter-tag]');
+      if (!button) return;
+      tag = button.dataset.filterTag ?? '';
+      applyFilters();
+      filter?.scrollIntoView({ block: 'nearest' });
+    });
+    loadMore.addEventListener('click', () => {
+      const firstNew = matches[limit];
+      limit += pageSize;
+      render();
+      // Move keyboard focus to the first newly revealed app instead of leaving it on a vanished button.
+      firstNew?.element.querySelector<HTMLElement>('.app-card-head')?.focus();
+    });
+    directory.querySelector('[data-clear]')?.addEventListener('click', () => {
+      search.value = query = '';
+      tag = '';
+      applyFilters();
+      search.focus();
+    });
+
+    fitTags();
+    applyFilters();
+    // Chip widths change when the web font arrives; the space for them changes with the viewport.
+    // Observe the outer filter, not the chip row, which itself resizes as chips are hidden.
+    document.fonts?.ready.then(fitTags);
+    document.fonts?.addEventListener('loadingdone', fitTags);
+    if (filter) new ResizeObserver(() => fitTags()).observe(filter);
+
+    directory.removeAttribute('data-loading');
+  }
+</script>

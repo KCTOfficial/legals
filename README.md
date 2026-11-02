@@ -11,7 +11,7 @@ This branch holds only the site code; documents are never edited here.
 | ---------------------- | ----------------------------------------------------- |
 | `<app>/<doc>.md`       | A page at `/apps/<app>/<doc>/`, listed under the app  |
 | `<app>/icon.png`       | App icon (also `.jpg`, `.webp`, `.svg`); optional     |
-| `<app>/app.json`       | `{ "name": "...", "description": "..." }`; optional   |
+| `<app>/app.json`       | `{ "name", "description", "tags" }` (max 5 tags); optional |
 
 A new Markdown file on `main` becomes a new page and sidebar entry automatically. The page title comes from the file's first `# Heading`, and the effective date from the text `effective as of YYYY-MM-DD`. Both can be overridden with optional frontmatter (`title`, `description`, `order`, `effective`).
 
@@ -26,6 +26,7 @@ npm run dev                          # default: local main, else origin/main
 ## Routes
 
 - `/` — home
+- `/apps/` — all apps, with search and tag filter (state kept in `?q=` and `?tag=`)
 - `/apps/<app>/` — app overview
 - `/apps/<app>/<doc>/` — document (use this URL in Google Play)
 
