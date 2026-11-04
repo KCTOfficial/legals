@@ -12,9 +12,9 @@ Ingetin Jadwal dikembangkan dan dikelola oleh PT. Kreasindo Cipta Teknologi ("ka
 ## 2. Ringkasan
 
 - Aplikasi bisa dipakai penuh **tanpa akun**. Tanpa akun, jadwal, tugas, dan catatanmu hanya tersimpan di HP.
-- Masuk dengan Google bersifat **opsional**, hanya untuk memindahkan data ke HP lain.
+- Masuk dengan Google bersifat **opsional**, hanya untuk memindahkan data ke HP lain, dan hanya tersedia untuk pengguna **13 tahun ke atas**.
 - Kami **tidak menjual** data pribadi.
-- Pengguna di bawah 13 tahun hanya melihat iklan non-personal, dan ID iklan tidak dipakai untuk mereka.
+- Untuk pengguna di bawah 13 tahun: iklan selalu non-personal tanpa ID iklan, dan **statistik pemakaian (analitik) tidak dikumpulkan**.
 - Kamu bisa menghapus akun dan semua data cloud kapan saja dari aplikasi.
 
 ## 3. Data yang tersimpan di HP
@@ -27,7 +27,7 @@ Jadwal, periode, mata pelajaran, guru, ruangan, sesi, tugas, pengingat, hari lib
 
 ## 4. Data bila kamu masuk dengan Google (opsional)
 
-Bila kamu memilih masuk dengan akun Google:
+Masuk dengan Google hanya ditawarkan kepada pengguna yang tahun lahirnya menunjukkan usia 13 tahun ke atas, sehingga nama dan email akun Google tidak dikumpulkan dari anak di bawah 13 tahun. Bila kamu memilih masuk dengan akun Google:
 
 - **Nama, alamat email, dan ID akun** dari Google dipakai untuk mengenali akunmu (Firebase Authentication).
 - **Salinan data aplikasi**: jadwal, tugas, pengingat, kehadiran, nilai, teks catatan, dan data aplikasi lainnya disimpan di Cloud Firestore (Google Firebase) agar bisa dipakai di HP lain. Hanya akunmu yang bisa membaca dan mengubah data ini. Isi foto tidak ikut disimpan.
@@ -39,8 +39,8 @@ Bila kamu mengisi kontak atau catatan untuk guru di aplikasi, isian itu ikut ter
 
 Setelah kelompok usia diketahui, aplikasi mengirim:
 
-- **Statistik pemakaian** (Firebase Analytics), misalnya bahwa sebuah tugas dibuat atau tour selesai, beserta kelompok usia dan jenjang (SD, SMP, dan seterusnya). Statistik ini **tidak** berisi isi jadwal, judul tugas, nama, atau email, dan tidak memakai ID iklan.
-- **Laporan crash** (Firebase Crashlytics): jenis perangkat, versi Android, versi aplikasi, dan keterangan teknis error. Pesan error disaring agar tidak memuat email, nomor telepon, atau token.
+- **Statistik pemakaian** (Firebase Analytics), **khusus pengguna 13 tahun ke atas**, misalnya bahwa sebuah tugas dibuat atau tour selesai, beserta kelompok usia dan jenjang (SD, SMP, dan seterusnya). Statistik ini **tidak** berisi isi jadwal, judul tugas, nama, atau email, dan tidak memakai ID iklan. Untuk pengguna di bawah 13 tahun, Analytics dimatikan dan tidak ada statistik yang dikirim.
+- **Laporan crash** (Firebase Crashlytics), untuk semua usia: jenis perangkat, versi Android, versi aplikasi, dan keterangan teknis error. Laporan ini hanya dipakai untuk memperbaiki aplikasi, tidak untuk iklan. Pesan error disaring agar tidak memuat email, nomor telepon, atau token.
 
 Sebelum kelompok usia diketahui, tidak ada statistik atau laporan crash yang dikirim.
 
@@ -62,9 +62,9 @@ Untuk menampilkan dan mengukur iklan, AdMob dapat memproses ID iklan (khusus 13 
 Ingetin Jadwal dirancang agar aman dipakai anak. Untuk pengguna yang tahun lahirnya menunjukkan usia di bawah 13 tahun:
 
 - iklan non-personal dengan rating maksimal G, tanpa ID iklan;
-- analitik tanpa ID iklan dan tanpa sinyal personalisasi iklan;
+- **statistik pemakaian (Firebase Analytics) tidak dikumpulkan**; hanya laporan crash teknis yang dikirim untuk memperbaiki aplikasi;
 - aplikasi tidak meminta izin lokasi;
-- masuk akun bersifat opsional, dan aplikasi bisa dipakai penuh tanpa akun;
+- **masuk dengan Google tidak tersedia**, sehingga nama dan email akun tidak dikumpulkan; semua data tetap di HP dan aplikasi bisa dipakai penuh tanpa akun;
 - tidak ada fitur obrolan, profil publik, atau berbagi konten ke orang yang tidak dikenal. Berbagi jadwal lewat kode QR terjadi langsung antar-HP tanpa melalui server kami, dan tidak menyertakan kontak guru, catatan, tugas, maupun nilai.
 
 Orang tua atau wali dapat meminta akses atau penghapusan data anak dengan menghubungi team@kct.co.id atau melalui halaman hapus akun (https://kctofficial.github.io/legals/apps/ingetin-jadwal/account-deletion).
@@ -99,7 +99,7 @@ Data cloud aplikasi (Firestore) disimpan di pusat data Google Cloud di Jakarta, 
 
 - **Persetujuanmu**: masuk dengan Google, personalisasi iklan (13 tahun ke atas), dan izin perangkat.
 - **Pelaksanaan layanan yang kamu minta**: menyimpan dan menyinkronkan data aplikasi.
-- **Kepentingan yang sah**: analitik pemakaian dan laporan crash untuk memperbaiki aplikasi, serta perlindungan dari penyalahgunaan.
+- **Kepentingan yang sah**: analitik pemakaian (13 tahun ke atas) dan laporan crash untuk memperbaiki aplikasi, serta perlindungan dari penyalahgunaan.
 
 Untuk anak di bawah 13 tahun, kami berasumsi pemakaian aplikasi berlangsung dengan sepengetahuan orang tua atau wali, dan hanya memproses data minimum seperti dijelaskan di bagian 7.
 
