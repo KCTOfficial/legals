@@ -4,7 +4,7 @@ Kebijakan privasi ini berlaku untuk aplikasi Sambung Titik di perangkat seluler,
 
 Sambung Titik adalah aplikasi edukasi yang membantu anak usia dini (dari PAUD sampai kelas 3 SD) berlatih menulis huruf, angka, dan kata dengan menyambung titik, dilengkapi latihan kata dan berhitung sederhana. Aplikasi tidak memerlukan akun, tidak meminta alamat email, nomor telepon, atau lokasi, dan tidak memuat SDK iklan maupun analitik.
 
-*Versi bahasa Inggris tersedia di [privacy-policy.md](privacy-policy.md). Bila ada perbedaan makna, silakan hubungi kami di kctapps@gmail.com.*
+*Versi bahasa Inggris tersedia di [privacy-policy.md](../sambung-titik/privacy-policy.md). Bila ada perbedaan makna, silakan hubungi kami di kctapps@gmail.com.*
 
 **Ringkasan**
 
